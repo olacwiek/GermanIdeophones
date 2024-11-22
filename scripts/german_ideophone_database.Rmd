@@ -1,0 +1,713 @@
+---
+title: "German ideophone dataset"
+author: "Aleksandra Ćwiek"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: tactile
+    highlight: github
+bibliography: references.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+This is the updated and functional version of the German ideophone dataset, originally collected from February to August 2018 in the Helene-Nathan- Bibliothek in Berlin. The database was collected by Aleksandra Ćwiek and Luisa Cimander (during her internship at ZAS). A more detailed description is provided in [@cwiek2022], Chapter 4.2. Below, I will give excerpts of this work.
+
+## Excerpt from Ćwiek (2022) on data collection
+
+The criteria for the data collection are attributable to the key elements of what an ideophone is, as discussed above, and based on the theory by @dingemanse2019, 16. Words with sound-symbolic ideophone-like features were not treated as ideophones if they showed morphosyntactic integration [@dingemanse2012, 656]. In that sense, verbs that remind of ideophones, such as *krächzen* from *krächz* ‘croak’ or *piepen* from *piep* ‘squek,’ were not included in the data set (cf. also Chapter 4.2). Similarly, nouns that bear signs of declension were excluded from the data set. As shown by @dingemanse2017 and @dingemanse2016, morphosyntactic integration and the expressive character of ideophones are inversely correlated. Hence, only nouns that were not morphosyntactically integrated, i.e., not declined as well as marked, were incorporated in the data set. Each instance of the ideophone was entered into the data set. Also, the original form of the ideophones was kept, e.g., *ahuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu*, or *huuuaaaaaaaaah*, in order to allow for an analysis of prosodic amplification in the future (similar to, e.g., Fuchs et al., 2019, for adjective antonym pairs). However, a unified written form was noted beside the original one, e.g., *ahu*, or *huah* for the above, which allows for comparing the number of word forms (original forms as seen in the book) with the number of lemmas (unified forms as would be seen in a dictionary).
+
+Next, we collected metadata on the book, in which a given ideophone was found, such as the title, the author, the age recommendation, the original language, and the publishing year. We hope that this metadata might allow for testing other effects in the future, for example, whether the language of origin has an influence on the variability and the number of ideophones in the book (original language), or whether the use of ideophones in children’s books changes over time (publishing year).
+
+The data set also entails the context of the ideophone and its meaning in context, if possible to establish. The interpretation of the meaning in context is subjective and might be a case for an in-depth investigation in the future. A photo was taken of the page on which the ideophone was found to ease future work with ideophones in context. In this respect, photos are a part of the data set. The unique name of each photo for a given page, on which the ideophone was found, is noted in the data set. Two other columns are the part of speech and category, yet, these are by far the least developed parts of the data set so far. An idea for future research might be to comprehensively structure ideophones for a German ideophone dictionary by parts of speech, but also across the categories in which ideophones may fall, such as sound, movement, or texture ideophones [@dingemanse2012a, 663; @mclean2020, 18; and Chapter 4.4].
+
+Lastly, the data set comprises the information on the number of words on a given page and the number of pages in a given book. The former was extracted semiautomatically using picture-to-text recognition available in Microsoft OneNote (Microsoft Corporation, 2018). In the cases that the text was not recognized correctly, the number of words was counted manually. This situation occurred, e.g., when the picture quality was worse and when the text was written by hand or not horizontally from left to right. A word was treated as an orthographic unit between two blank spaces with a few exceptions. In some cases, ideophones were concatenated into one word, e.g., *oh je*, *ach herrje*, or *tra, ri, ra*. Those examples concern ideophones, which often co-occur and are officially written separately which, however, tend to be concatenated in informal writing – compare *oh je* with 19,959 vs. *ohje* with 15,624 occurrences, as given in theWebXL corpus of the DWDS [@dwds-d, accessed on February 5, 2021]. All words were counted, even those written on the graphic elements and which were merely elements of the story; see Figure 4.2 for an example. In some cases, the pictures did not comprise the whole page, i.e., parts of the text were cut out. Then, an estimation of the word count, based on the visible parts and other available pages, was given. The number of pages was copied from the library database. The number of words on a page, along with the age recommendation data, allows for testing the hypothesis, whether there are more ideophones in books for younger audiences (cf. Chapter 4.5).
+
+## Dataset description
+
+The script below is used to translate to English and explore the existing dataset. The columns of the dataset called `german_ideophone_dataset.csv` created at the end of this markdown file are as follows:
+
+-   **ID**: A unique identifier for each entry in the dataset.
+
+-   **Ideophone**: The ideophone as it appears in the book, including its full original form.
+
+-   **BaseForm**: The simplified or standardized form of the ideophone (lemma) used for analysis.
+
+-   **BookTitle**: The title of the book where the ideophone was found.
+
+-   **Author**: The author(s) of the book where the ideophone was found.
+
+-   **AgeRating**: The recommended age range for the book, as specified by the publisher.
+
+-   **AgeGroup**: A grouped version of the age rating, where:
+
+    -   `1` represents younger children (e.g., 0-6 years old).
+
+    -   `2` represents older children (e.g., 7-9 years old).
+
+-   **OriginalLanguage**: The language in which the book was originally published.
+
+-   **Year**: The year the book was published.
+
+-   **Context**: A snippet of the text where the ideophone appears, providing its context.
+
+-   **MeaningInContext**: The interpreted meaning of the ideophone within its context, based on the collector's analysis.
+
+-   **Source**: An identifier or reference to the source where the ideophone was collected.
+
+-   **WordType**: The grammatical word type or part of speech of the ideophone, if applicable (e.g., noun, verb).
+
+-   **WordCount**: The total number of words on the page where the ideophone appears.
+
+-   **PageCount**: The total number of pages in the book where the ideophone appears.
+
+```{r source setup, echo = TRUE, message=FALSE, warning = FALSE}
+
+########## folders ##########
+library(here)
+
+parentfolder <- dirname(getwd())
+data          <- paste0(parentfolder, '/ideophoneData/')
+hierarchy     <- paste0(parentfolder, '/hierarchyData/')
+photos        <- paste0(parentfolder, '/bookPhotos/')
+plots         <- paste0(parentfolder, '/plots/')
+scripts       <- paste0(parentfolder, '/scripts/')
+
+########## source file ##########
+
+#source(paste0(scripts, "adjectives-preparation.R"))
+
+#################### packages ####################
+library(tibble)
+library(stringr)
+library(readr)    # data wrangling
+library(tidyr)
+library(dplyr)
+library(ggplot2) # plotting
+library(tidyverse)
+library(ggpubr)
+library(gridExtra)
+library(BayesFactor)
+
+colorBlindBlack8  <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
+                       "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
+
+```
+
+# Import data
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+df = read.csv(paste0(data, 'Korpus_Ideophone.csv'), sep=';', na.string = "NA", encoding="UTF-8")
+```
+
+# Clean and prepare
+
+Translate to English where possible.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+str(df)
+
+# Renaming columns
+colnames(df) <- c("ID", "Ideophone", "BaseForm", "BookTitle", "Author", "AgeRating", 
+                  "AgeGroup", "OriginalLanguage", "Year", "Context", 
+                  "MeaningInContext", "Source", "WordType", "WordCount", "PageCount")
+
+# Translating OriginalLanguage
+df$OriginalLanguage <- recode(df$OriginalLanguage,
+    "Deutsch" = "German", 
+    "Norwegisch" = "Norwegian", 
+    "Schwedisch" = "Swedish", 
+    "Französisch" = "French", 
+    "Englisch" = "English", 
+    "Niederländisch" = "Dutch", 
+    "Spanisch" = "Spanish", 
+    "Tschechisch" = "Czech", 
+    "Japanisch" = "Japanese", 
+    "Hebräisch" = "Hebrew", 
+    "Estnisch" = "Estonian", 
+    "Polnisch" = "Polish", 
+    "Deutsch?" = "German", 
+    "Türkisch" = "Turkish", 
+    "Georgisch" = "Georgian", 
+    "Koreanisch" = "Korean", 
+    "Dänisch" = "Danish", 
+    "Persisch" = "Farsi", 
+    "?" = "Unknown", 
+    "Finnisch" = "Finnish"
+)
+```
+
+# Frequencies
+
+## Ideophone counts
+
+How many unique ideophones are there?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df %>%
+  summarise(UniqueIdeophones = n_distinct(Ideophone))
+```
+
+How often do unique ideophones occur?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ideophone_freq <- df %>%
+  group_by(Ideophone) %>%
+  summarise(Frequency = n()) %>%
+  arrange(desc(Frequency))
+
+head(ideophone_freq, 20)
+```
+
+How many base forms are there?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df %>%
+  summarise(BaseForms = n_distinct(BaseForm))
+```
+
+How often do the base forms occur?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+baseform_freq <- df %>%
+  group_by(BaseForm) %>%
+  summarise(Frequency = n()) %>%
+  arrange(desc(Frequency))
+
+head(baseform_freq, 20)
+```
+
+Arguably, some of those are interjections. I do not remove them here, but any future research needs to possibly select those words that are useful to them.
+
+Let us plot top 30 base form ideophones.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+top_ideophones <- baseform_freq %>% head(30)
+
+ggplot(top_ideophones, aes(x = reorder(BaseForm, Frequency), y = Frequency)) +
+  geom_bar(stat = "identity", fill = colorBlindBlack8[4]) +
+  coord_flip() +
+  labs(title = "Top 30 most frequent base forms", x = "Base form", y = "Frequency") +
+  theme_minimal()
+
+ggsave(plot = last_plot(), filename = paste0(plots, "top30MostFrequent.pdf"), 
+       width = 6, height = 6);
+ggsave(plot = last_plot(), filename = paste0(plots, "top30MostFrequent.jpg"), 
+       width = 6, height = 6);
+ggsave(plot = last_plot(), filename = paste0(plots, "top30MostFrequent.tif"), 
+       width = 6, height = 6, compression="lzw", dpi=600);
+```
+
+## Original language
+
+Frequency of original languages.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df %>%
+  group_by(OriginalLanguage) %>%
+  summarise(Frequency = n()) %>%
+  arrange(desc(Frequency))
+```
+
+How many base forms per original language?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df %>%
+  group_by(OriginalLanguage) %>%
+  summarise(DistinctBaseForms = n_distinct(BaseForm)) %>%
+  arrange(desc(DistinctBaseForms))
+```
+
+How many base forms per book per original language? (a little bit more objective than the one above)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+language_baseform <- df %>%
+  group_by(OriginalLanguage) %>%
+  summarise(
+    TotalBooks = n_distinct(BookTitle),          # Count unique books
+    DistinctBaseForms = n_distinct(BaseForm)     # Count unique base forms
+  ) %>%
+  mutate(BaseFormsPerBook = DistinctBaseForms / TotalBooks) %>% # Normalize by books
+  arrange(desc(BaseFormsPerBook))
+
+language_baseform
+```
+
+Let us plot it.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(language_baseform, aes(x = reorder(OriginalLanguage, BaseFormsPerBook), y = BaseFormsPerBook)) +
+  geom_bar(stat = "identity", fill = colorBlindBlack8[4]) +
+  coord_flip() +
+  labs(title = "Base forms per book per language", x = "Original language", y = "Base forms per book") +
+  scale_y_continuous(breaks = seq(0, max(language_baseform$BaseFormsPerBook), by = 1)) + # Adjust breaks
+  theme_minimal()
+
+ggsave(plot = last_plot(), filename = paste0(plots, "baseFormBookLanguage.pdf"), 
+       width = 6, height = 5);
+ggsave(plot = last_plot(), filename = paste0(plots, "baseFormBookLanguage.jpg"), 
+       width = 6, height = 5);
+ggsave(plot = last_plot(), filename = paste0(plots, "baseFormBookLanguage.tif"), 
+       width = 6, height = 5, compression="lzw", dpi=600);
+```
+
+## Words per book
+
+How many words in a book are ideophones?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ideophone_count_per_book <- df %>%
+  group_by(BookTitle, AgeGroup) %>% 
+  summarise(
+    TotalWords = sum(WordCount, na.rm = TRUE),
+    Ideophones = n(),
+    .groups = "drop"
+  ) %>%
+  mutate(IdeophonePercentage = (Ideophones / TotalWords) * 100) %>%
+  arrange(desc(IdeophonePercentage))
+
+# Show the first 20
+head(ideophone_count_per_book, 20)
+```
+
+Do books with more words tend to have more ideophones in them?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+correlationBF(
+  x = ideophone_count_per_book$TotalWords,
+  y = ideophone_count_per_book$Ideophones,
+  rscale = 0.707  # Default prior scale
+)
+```
+
+With $BF_{10}=9.321855×10^{103}$ there is very strong evidence for a correlation between a total word count and the number of ideophones.
+
+Let us visualize the correlation.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(ideophone_count_per_book, aes(x = TotalWords, y = Ideophones)) +
+  geom_point(alpha = 0.7, color = colorBlindBlack8[2]) +
+  geom_smooth(method = "lm", color = colorBlindBlack8[4], se = FALSE) +
+  labs(title = "Correlation between total word count and number of ideophones",
+       x = "Total words",
+       y = "Ideophones") +
+  theme_classic()
+
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_totalWords_Ideophones.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_totalWords_Ideophones.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_totalWords_Ideophones.tif"), 
+       width = 6, height = 4, compression="lzw", dpi=600);
+```
+
+## Number of ideophone per age group
+
+How does the amount of words that are ideophones depend on age group?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ideophone_count_per_book %>%
+  group_by(AgeGroup) %>%
+  summarise(
+    AvgTotalWords = mean(TotalWords, na.rm = TRUE),
+    AvgIdeophones = mean(Ideophones, na.rm = TRUE),
+    AvgIdeophonePercentage = mean(IdeophonePercentage, na.rm = TRUE),
+    .groups = "drop" 
+  )
+```
+
+In descriptive means, there are less total words in the age group 1, but the mean ideophone percentage is higher.
+
+Let us visualize the number of words per age group.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(ideophone_count_per_book, aes(x = factor(AgeGroup), y = TotalWords)) +
+  geom_violin(aes(fill = factor(AgeGroup)), alpha = 0.6) + 
+  geom_boxplot(aes(fill = factor(AgeGroup)), width = 0.05, outlier.shape = NA, notch = TRUE) + 
+  #geom_jitter(color = "grey", alpha = 0.5, width = 0.2) + 
+  scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
+  theme_classic() +
+  guides(fill = "none") +
+  ylim(c(0, 2000)) +
+  labs(title = "Total words per book by age group", x = "Age group", y = "Total words")
+
+ggsave(plot = last_plot(), filename = paste0(plots, "totalWords_ageGroup.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "totalWords_ageGroup.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "totalWords_ageGroup.tif"), 
+       width = 6, height = 4, compression="lzw", dpi=600);
+```
+
+Let us visualize the number of ideophones per age group.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(ideophone_count_per_book, aes(x = factor(AgeGroup), y = Ideophones)) +
+  geom_violin(aes(fill = factor(AgeGroup)), alpha = 0.6) + 
+  geom_boxplot(aes(fill = factor(AgeGroup)), width = 0.05, outlier.shape = NA, notch = TRUE) + 
+  #geom_jitter(color = "grey", alpha = 0.5, width = 0.2) + 
+  scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
+  theme_classic() +
+  guides(fill = "none") +
+  labs(
+    title = "Number of ideophones per book by age group",
+    x = "Age group",
+    y = "Number of ideophones per book"
+  ) +
+  ylim(c(0, 50))
+
+ggsave(plot = last_plot(), filename = paste0(plots, "ideophones_ageGroup.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "ideophones_ageGroup.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "ideophones_ageGroup.tif"), 
+       width = 6, height = 4, compression="lzw", dpi=600);
+```
+
+There are more ideophones per book by age group. But let us see whether that holds if we normalize for overall word count, i.e., by looking at percentages.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(ideophone_count_per_book, aes(x = factor(AgeGroup), y = IdeophonePercentage)) +
+  geom_violin(aes(fill = factor(AgeGroup)), alpha = 0.6) + 
+  geom_boxplot(aes(fill = factor(AgeGroup)), width = 0.05, outlier.shape = NA, notch = TRUE) + 
+  #geom_jitter(color = "grey", alpha = 0.5, width = 0.2) + 
+  scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
+  theme_classic() +
+  guides(fill = "none") +
+  labs(
+    title = "Ideophone percentage by age group",
+    x = "Age group",
+    y = "Percentage of ideophones"
+  ) +
+  ylim(c(0,10))
+
+ggsave(plot = last_plot(), filename = paste0(plots, "ideophonesPercentage_ageGroup.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "ideophonesPercentage_ageGroup.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "ideophonesPercentage_ageGroup.tif"), 
+       width = 6, height = 4, compression="lzw", dpi=600);
+```
+
+There is not really a difference in the box plot.
+
+Let's see whether this can be tested in Bayes Factor. (In the dissertation I used a t-test.)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ttestBF(
+  formula = IdeophonePercentage ~ AgeGroup,
+  data = ideophone_count_per_book
+)
+```
+
+A BF of $BF_{10}=1.254374$ means that the data provides **slightly more support** for the **alternative hypothesis** (that there is a difference in `IdeophonePercentage` between age groups) compared to the null hypothesis (no difference between age groups).
+
+We can change the prior scale to a smaller value (expecting a smaller effect), then we observe the BF gets slightly higher $BF_{10}=1.590015$ (with $r = 0.5$) or $BF_{10}=2.1836$ (with $r = 0.2$).
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ttestBF(
+  formula = IdeophonePercentage ~ AgeGroup,
+  data = as.data.frame(ideophone_count_per_book),
+  rscale = 0.5  # Smaller prior scale
+)
+ttestBF(
+  formula = IdeophonePercentage ~ AgeGroup,
+  data = as.data.frame(ideophone_count_per_book),
+  rscale = 0.2  # Smaller prior scale
+)
+```
+
+The effect observed here is weak, but given the imbalance in the number of data points between the groups, cf.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df %>%
+  group_by(AgeGroup) %>%
+  summarise(NumberOfBooks = n_distinct(BookTitle)) %>%
+  arrange(AgeGroup)
+```
+
+and that group 1 consists of books for children from 0 to 6 years old, a much wider gap than group 2, with books for kids between 7 and 9, it is still impressive that any effect can be found.
+
+## Ideophone diversity per age group
+
+How many unique ideophones are there per age group?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df %>%
+  group_by(AgeGroup) %>%
+  summarise(UniqueIdeophones = n_distinct(Ideophone)) %>%
+  arrange(desc(UniqueIdeophones))
+```
+
+How many base forms are there per age group?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df %>%
+  group_by(AgeGroup) %>%
+  summarise(BaseForms = n_distinct(BaseForm)) %>%
+  arrange(desc(BaseForms))
+```
+
+### Per book normalization
+
+But we need to take into account that the number of books differs, so let us look at the number of unique ideophones/base forms per book per age group.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df %>%
+  group_by(AgeGroup) %>%
+  summarise(
+    TotalBooks = n_distinct(BookTitle),             # Count the number of books
+    UniqueIdeophones = n_distinct(Ideophone),       # Count unique ideophones
+    BaseForms = n_distinct(BaseForm)               # Count unique base forms
+  ) %>%
+  mutate(
+    IdeophonesPerBook = UniqueIdeophones / TotalBooks, # Normalize ideophones
+    BaseFormsPerBook = BaseForms / TotalBooks          # Normalize base forms
+  )
+
+per_book_counts <- df %>%
+  group_by(BookTitle, AgeGroup) %>%
+  summarise(
+    UniqueIdeophones = n_distinct(Ideophone),
+    UniqueBaseForms = n_distinct(BaseForm),
+    .groups = "drop"
+  )
+```
+
+Let us plot the ideophones first.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(per_book_counts, aes(x = factor(AgeGroup), y = UniqueIdeophones, fill = factor(AgeGroup))) +
+  geom_violin(alpha = 0.6) +
+  geom_boxplot(width = 0.1, outlier.shape = NA, notch = TRUE) +
+  scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
+  labs(
+    title = "Unique ideophones per book by age group",
+    x = "Age group",
+    y = "Number of unique ideophones"
+  ) +
+  theme_classic() +
+  guides(fill = "none")
+
+ggsave(plot = last_plot(), filename = paste0(plots, "uniqueIdeophones_ageGroup_violinBox.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "uniqueIdeophones_ageGroup_violinBox.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "uniqueIdeophones_ageGroup_violinBox.tif"), 
+       width = 6, height = 4, compression = "lzw", dpi = 600)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(per_book_counts, aes(x = UniqueIdeophones, fill = factor(AgeGroup))) +
+  geom_density(alpha = 0.6) +
+  scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
+  labs(
+    title = "Density of unique ideophones per book by age group",
+    x = "Number of unique ideophones",
+    y = "Density",
+    fill = "Age group"
+  ) +
+  theme_classic()
+
+ggsave(plot = last_plot(), filename = paste0(plots, "uniqueIdeophones_ageGroup_density.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "uniqueIdeophones_ageGroup_density.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "uniqueIdeophones_ageGroup_density.tif"), 
+       width = 6, height = 4, compression = "lzw", dpi = 600);
+
+```
+
+And now the base forms.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(per_book_counts, aes(x = factor(AgeGroup), y = UniqueBaseForms, fill = factor(AgeGroup))) +
+  geom_violin(alpha = 0.6) +
+  geom_boxplot(width = 0.1, outlier.shape = NA, notch = TRUE) +
+  scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
+  labs(
+    title = "Base forms per book by age group",
+    x = "Age group",
+    y = "Number of base forms"
+  ) +
+  theme_classic() +
+  guides(fill = "none")
+
+ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_violinBox.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGrou_violinBoxp.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_violinBox.tif"), 
+       width = 6, height = 4, compression = "lzw", dpi = 600)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+ggplot(per_book_counts, aes(x = UniqueBaseForms, fill = factor(AgeGroup))) +
+  geom_density(alpha = 0.6) +
+  scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
+  labs(
+    title = "Density of base forms per book by age group",
+    x = "Number of base forms",
+    y = "Density",
+    fill = "Age group"
+  ) +
+  theme_classic()
+
+ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_density.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_density.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_density.tif"), 
+       width = 6, height = 4, compression = "lzw", dpi = 600)
+
+```
+
+### Per page normalization
+
+We will also look at the number of pages.
+
+Make a dataframe for total ideophones per book and ideophones per page. Then, calculate average ideophones per page for each age group.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ideophones_per_book <- df %>%
+  group_by(BookTitle, AgeGroup, PageCount) %>%
+  reframe(
+    TotalIdeophones = n(),  # Total ideophones in the book
+    IdeophonesPerPage = TotalIdeophones / PageCount,  # Ideophones per page
+    .groups = "drop"
+  )
+
+ideophones_per_book %>%
+  group_by(AgeGroup) %>%
+  reframe(
+    AvgIdeophonesPerPage = mean(IdeophonesPerPage, na.rm = TRUE),
+    MedianIdeophonesPerPage = median(IdeophonesPerPage, na.rm = TRUE),
+    SD_IdeophonesPerPage = sd(IdeophonesPerPage, na.rm = TRUE),
+    TotalBooks = n(),
+    .groups = "drop"
+  )
+```
+
+Now we plot unique ideophones per page by age group.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(ideophones_per_book, aes(x = factor(AgeGroup), y = IdeophonesPerPage, fill = factor(AgeGroup))) +
+  geom_violin(alpha = 0.6, trim = FALSE) +
+  geom_boxplot(width = 0.1, outlier.shape = NA, notch = TRUE) +
+  scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
+  labs(
+    title = "Ideophones per Page by Age Group",
+    x = "Age Group",
+    y = "Ideophones per Page"
+  ) +
+  theme_classic() +
+  ylim(c(0,4.5)) +
+  guides(fill = "none")
+
+ggsave(plot = last_plot(), filename = paste0(plots, "ageGroup_IdeophonesPerPage.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "ageGroup_IdeophonesPerPage.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "ageGroup_IdeophonesPerPage.tif"), 
+       width = 6, height = 4, compression="lzw", dpi=600);
+```
+
+Remove missing values for Bayesian t-test.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ideophones_per_book <- ideophones_per_book %>%
+  filter(!is.na(IdeophonesPerPage) & !is.infinite(IdeophonesPerPage))
+```
+
+Perform a Bayesian t-test to see if the difference between age groups is statistically significant.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ttestBF(
+  formula = IdeophonesPerPage ~ AgeGroup,
+  data = ideophones_per_book
+)
+```
+
+Even though the plot above does not look as if there was an effect, Bayes Factor $BF_{10}=4.1×10^{45}$ is extremely high and confirms a large difference between the age groups in ideophones per page.
+
+Analyze the relationship between page count and ideophones per page. Let's visualize the correlation.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(ideophones_per_book, aes(x = PageCount, y = IdeophonesPerPage)) +
+  geom_point(alpha = 0.7, color = colorBlindBlack8[2]) +
+  geom_smooth(method = "lm", color = colorBlindBlack8[4], se = FALSE) +
+  labs(title = "Correlation between number of pages and ideophones per page",
+       x = "Number of pages",
+       y = "Ideophones per page") +
+  theme_classic()
+
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPerPage.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPerPage.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPerPage.tif"), 
+       width = 6, height = 4, compression="lzw", dpi=600);
+```
+
+The visualization clearly shows that books that have more pages tend to have less ideophones per page.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+correlationBF(
+  x = ideophones_per_book$PageCount,
+  y = ideophones_per_book$IdeophonesPerPage,
+  rscale = 0.707  # Default prior scale
+)
+```
+
+The correlation between `PageCount` and `IdeophonesPerPage` is very strong with $BF_{10}=1.101292×10^{32}$.
+
+If we look at the different age groups, will there be a different correlation?
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ggplot(ideophones_per_book, aes(x = PageCount, y = IdeophonesPerPage, color = factor(AgeGroup))) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_manual(values = colorBlindBlack8[c(2, 4)]) +
+  labs(
+    title = "Correlation between number of pages and ideophones per page",
+    x = "Number of pages",
+       y = "Ideophones per page",
+    color = "Age Group"
+  ) +
+  theme_minimal()
+
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPerPage_AgeGroup.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPerPage_AgeGroup.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPerPage_AgeGroup.tif"), 
+       width = 6, height = 4, compression="lzw", dpi=600);
+```
+
+It is clearly visible that age group 1 has an extremely steep correlation, while age group 2 a rather flat one. Let us examine this statistically.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+ttestBF(
+      formula = IdeophonesPerPage ~ AgeGroup,
+      data = ideophones_per_book
+    )
+```
+
+The $BF_{10}=4.1×10^{45}$ provides overwhelming evidence that ideophones per page differ across age groups.
+
+# Export cleaned dataset
+
+Export cleaned dataset to `german_ideophone_dataset.csv`.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+write.csv(df, paste0(data, "german_ideophone_dataset.csv"), row.names = FALSE)
+```
+
+This concludes this exploration.
+
+# References
