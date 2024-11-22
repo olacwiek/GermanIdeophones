@@ -2,6 +2,6 @@
 hierarchyData/
 
 # Ignore specific files
-hierarchy.R
-ideophones_acer.R
+scripts/hierarchy.R
+scripts/ideophones_acer.R
 
