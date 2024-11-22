@@ -1,0 +1,7 @@
+# Ignore all files in the 'data' folder
+hierarchyData/
+
+# Ignore specific files
+hierarchy.R
+ideophones_acer.R
+
