@@ -1,6 +1,13 @@
 # German Ideophone Database
 
-This repository contains an analysis of the German ideophone dataset collected between February and August 2018 at the Helene-Nathan-Bibliothek in Berlin. The dataset and analysis focus on ideophones found in German children's books, with detailed metadata and statistical analyses. Below, you will find a description of the project, the dataset, and how to use the resources in this repository.
+This repository contains a dataset of the German ideophone dataset collected in German children's books between February and August 2018 at the Helene-Nathan-Bibliothek in Berlin. Included are some basic mostly descriptive analyses. Below, you will find a description of the project, the dataset, and how to use the resources in this repository.
+
+**It is worth noting that no post-selection has been undertaken. Any users who use the dataset in the future are advised caution in the choice of items from the dataset for their specific analysis.**
+
+This work was published as a dataset in
+Ćwiek, Aleksandra (2025). A dataset of German ideophones from children's books. *Linguistische Berichte*.
+
+Please use the appropriate citation form when using this dataset.
 
 ---
 
@@ -19,13 +26,13 @@ This repository contains an analysis of the German ideophone dataset collected b
 
 ## Overview
 
-This project analyzes the diversity and usage of ideophones in German children's literature. Key questions addressed include:
+This project analyzes the diversity and usage of ideophones in German children's books. Key questions addressed include:
 - How many unique ideophones and base forms are there?
 - How do these numbers vary across age groups?
 - How does the percentage of ideophones relate to the total word count and number of pages?
 - Are there correlations between these features and the metadata of the books?
 
-The analysis leverages Bayesian statistics, descriptive statistics, and data visualization to provide meaningful insights.
+The analysis uses Bayesian Factors, descriptive statistics, and data visualization to provide some basic insights.
 
 ---
 
@@ -53,7 +60,7 @@ The dataset comprises detailed metadata and linguistic information for ideophone
 
 ## Analysis Highlights
 
-Key analyses include:
+Key basic analyses include:
 
 1. **Ideophone Diversity**:
    - Total number of unique ideophones and base forms.
@@ -99,10 +106,10 @@ Key analyses include:
 
 ## Project Structure
 
-- `data/`: Contains the raw dataset `Korpus_Ideophone.csv` and the cleaned dataset `german_ideophone_dataset.csv`.
+- `ideophoneData/`: Contains the raw dataset `Korpus_Ideophone.csv` and the cleaned dataset `german_ideophone_dataset.csv`.
 - `scripts/`: Contains any preprocessing scripts used for data cleaning and transformation.
 - `plots/`: Stores all generated visualizations.
-- `german_ideophone_analysis.Rmd`: The main analysis file.
+- `german_ideophone_analysis.Rmd` and the corresponding `german_ideophone_analysis.html`: The main analysis file.
 - `README.md`: This file.
 
 ---
@@ -131,11 +138,12 @@ Contributions are welcome! If you wish to contribute:
 - Create a new branch for your feature/bug fix.
 - Submit a pull request with a clear description of the changes.
 
+Possible contribution include a careful inspection of context to correctly identify ideophones.
 ---
 
 ## License
 
-This project is licensed under the MIT License. See the LICENSE file for details.
+This project is licensed under the [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/deed.en) license.
 
 ---
 
