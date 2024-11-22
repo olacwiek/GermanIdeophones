@@ -4,4 +4,4 @@ hierarchyData/
 # Ignore specific files
 scripts/hierarchy.R
 scripts/ideophones_acer.R
-
+scripts/german_ideophone_database.nb.html
