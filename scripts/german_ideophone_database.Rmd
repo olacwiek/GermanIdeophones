@@ -17,6 +17,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This is the updated and functional version of the German ideophone dataset, originally collected from February to August 2018 in the Helene-Nathan- Bibliothek in Berlin. The database was collected by Aleksandra Ćwiek and Luisa Cimander (during her internship at ZAS). A more detailed description is provided in [@cwiek2022], Chapter 4.2. Below, I will give excerpts of this work.
 
+This work was published as a dataset in
+Ćwiek, Aleksandra (2025). A dataset of German ideophones from children's books. *Linguistische Berichte*.
+
+Please use the appropriate citation form when using this dataset.
+
 ## Excerpt from Ćwiek (2022) on data collection
 
 The criteria for the data collection are attributable to the key elements of what an ideophone is, as discussed above, and based on the theory by @dingemanse2019, 16. Words with sound-symbolic ideophone-like features were not treated as ideophones if they showed morphosyntactic integration [@dingemanse2012, 656]. In that sense, verbs that remind of ideophones, such as *krächzen* from *krächz* ‘croak’ or *piepen* from *piep* ‘squek,’ were not included in the data set (cf. also Chapter 4.2). Similarly, nouns that bear signs of declension were excluded from the data set. As shown by @dingemanse2017 and @dingemanse2016, morphosyntactic integration and the expressive character of ideophones are inversely correlated. Hence, only nouns that were not morphosyntactically integrated, i.e., not declined as well as marked, were incorporated in the data set. Each instance of the ideophone was entered into the data set. Also, the original form of the ideophones was kept, e.g., *ahuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu*, or *huuuaaaaaaaaah*, in order to allow for an analysis of prosodic amplification in the future (similar to, e.g., Fuchs et al., 2019, for adjective antonym pairs). However, a unified written form was noted beside the original one, e.g., *ahu*, or *huah* for the above, which allows for comparing the number of word forms (original forms as seen in the book) with the number of lemmas (unified forms as would be seen in a dictionary).
@@ -601,9 +606,9 @@ ggplot(ideophones_per_book, aes(x = factor(AgeGroup), y = IdeophonesPerPage, fil
   geom_boxplot(width = 0.1, outlier.shape = NA, notch = TRUE) +
   scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
   labs(
-    title = "Ideophones per Page by Age Group",
-    x = "Age Group",
-    y = "Ideophones per Page"
+    title = "Ideophones per page by age group",
+    x = "Age group",
+    y = "Ideophones per page"
   ) +
   theme_classic() +
   ylim(c(0,4.5)) +
