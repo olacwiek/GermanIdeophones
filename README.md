@@ -4,10 +4,12 @@ This repository contains a dataset of the German ideophone-like marked words dat
 
 **It is crucial to note that no post-selection has been undertaken. Any users who use the dataset in the future are advised caution in the choice of items from the dataset for their specific analysis.**
 
-This work was published as a dataset in
-Ćwiek, Aleksandra (2025). A dataset of German ideophones from children's books. *Linguistische Berichte*.
+This work will appear as an article attached to the dataset as
+
+Ćwiek, Aleksandra (submitted). A dataset of German ideophones from children's books. *Linguistische Berichte*.
 
 Please use the appropriate citation form when using this dataset.
+
 Ćwiek, A. (2024, December 11). *A dataset of ideophone-like marked words from German children’s books*. https://doi.org/10.17605/OSF.IO/6UDXZ
 
 ---
