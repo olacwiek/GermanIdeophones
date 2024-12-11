@@ -1,4 +1,4 @@
-# German Ideophone Database
+#  A dataset of ideophone-like marked words from German children’s books
 
 This repository contains a dataset of the German ideophone dataset collected in German children's books between February and August 2018 at the Helene-Nathan-Bibliothek in Berlin. Included are some basic mostly descriptive analyses. Below, you will find a description of the project, the dataset, and how to use the resources in this repository.
 
