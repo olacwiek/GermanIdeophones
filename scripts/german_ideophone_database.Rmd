@@ -17,14 +17,13 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This is the updated and functional version of the German ideophone dataset, originally collected from February to August 2018 in the Helene-Nathan- Bibliothek in Berlin. The database was collected by Aleksandra Ćwiek and Luisa Cimander (during her internship at ZAS). A more detailed description is provided in [@cwiek2022], Chapter 4.2. Below, I will give excerpts of this work.
 
-This work was published as a dataset in
-Ćwiek, Aleksandra (2025). A dataset of German ideophones from children's books. *Linguistische Berichte*.
+This work was published as a dataset in Ćwiek, Aleksandra (2025). A dataset of German ideophones from children's books. *Linguistische Berichte*.
 
 Please use the appropriate citation form when using this dataset.
 
 ## Excerpt from Ćwiek (2022) on data collection
 
-The criteria for the data collection are attributable to the key elements of what an ideophone is, as discussed above, and based on the theory by @dingemanse2019, 16. Words with sound-symbolic ideophone-like features were not treated as ideophones if they showed morphosyntactic integration [@dingemanse2012, 656]. In that sense, verbs that remind of ideophones, such as *krächzen* from *krächz* ‘croak’ or *piepen* from *piep* ‘squek,’ were not included in the data set (cf. also Chapter 4.2). Similarly, nouns that bear signs of declension were excluded from the data set. As shown by @dingemanse2017 and @dingemanse2016, morphosyntactic integration and the expressive character of ideophones are inversely correlated. Hence, only nouns that were not morphosyntactically integrated, i.e., not declined as well as marked, were incorporated in the data set. Each instance of the ideophone was entered into the data set. Also, the original form of the ideophones was kept, e.g., *ahuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu*, or *huuuaaaaaaaaah*, in order to allow for an analysis of prosodic amplification in the future (similar to, e.g., Fuchs et al., 2019, for adjective antonym pairs). However, a unified written form was noted beside the original one, e.g., *ahu*, or *huah* for the above, which allows for comparing the number of word forms (original forms as seen in the book) with the number of lemmas (unified forms as would be seen in a dictionary).
+The criteria for the data collection are attributable to the key elements of what an ideophone is, as discussed above, and based on the theory by @dingemanse2019, 16. Words with sound-symbolic ideophone-like features were not treated as ideophones if they showed morphosyntactic integration [@dingemanse2012, 656]. In that sense, verbs that remind of ideophones, such as *krächzen* from *krächz* ‘croak’ or *piepen* from *piep* ‘squek,’ were not included in the data set (cf. also Chapter 4.2). Similarly, nouns that bear signs of declension were excluded from the data set. As shown by @dingemanse2017 and @dingemanse2016, morphosyntactic integration and the expressive character of ideophones are inversely correlated. Hence, only nouns that were not morphosyntactically integrated, i.e., not declined as well as marked, were incorporated in the data set. Each instance of the ideophone was entered into the data set. Also, the original form of the ideophones was kept, e.g., *ahuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu*, or *huuuaaaaaaaaah*, in order to allow for an analysis of prosodic amplification in the future (similar to, e.g., Fuchs et al., 2019, for adjective antonym pairs). However, a unified written form was noted beside the original one, e.g., *ahu*, or *huah* for the above, which allows for comparing the number of word forms (original forms as seen in the book) with the number of base forms (unified forms as would be seen in a dictionary).
 
 Next, we collected metadata on the book, in which a given ideophone was found, such as the title, the author, the age recommendation, the original language, and the publishing year. We hope that this metadata might allow for testing other effects in the future, for example, whether the language of origin has an influence on the variability and the number of ideophones in the book (original language), or whether the use of ideophones in children’s books changes over time (publishing year).
 
@@ -40,7 +39,7 @@ The script below is used to translate to English and explore the existing datase
 
 -   **Ideophone**: The ideophone as it appears in the book, including its full original form.
 
--   **BaseForm**: The simplified or standardized form of the ideophone (lemma) used for analysis.
+-   **BaseForm**: The simplified or standardized form of the ideophone used for analysis.
 
 -   **BookTitle**: The title of the book where the ideophone was found.
 
@@ -70,6 +69,8 @@ The script below is used to translate to English and explore the existing datase
 
 -   **PageCount**: The total number of pages in the book where the ideophone appears.
 
+-   **FrequencyRank**: The rank of the base form according to the frequency of occurrence across the dataset.
+
 ```{r source setup, echo = TRUE, message=FALSE, warning = FALSE}
 
 ########## folders ##########
@@ -81,6 +82,7 @@ hierarchy     <- paste0(parentfolder, '/hierarchyData/')
 photos        <- paste0(parentfolder, '/bookPhotos/')
 plots         <- paste0(parentfolder, '/plots/')
 scripts       <- paste0(parentfolder, '/scripts/')
+models       <- paste0(parentfolder, '/models/')
 
 ########## source file ##########
 
@@ -97,6 +99,7 @@ library(tidyverse)
 library(ggpubr)
 library(gridExtra)
 library(BayesFactor)
+library(brms)
 
 colorBlindBlack8  <- c("#000000", "#E69F00", "#56B4E9", "#009E73", 
                        "#F0E442", "#0072B2", "#D55E00", "#CC79A7")
@@ -181,17 +184,23 @@ How often do the base forms occur?
 baseform_freq <- df %>%
   group_by(BaseForm) %>%
   summarise(Frequency = n()) %>%
-  arrange(desc(Frequency))
+  arrange(desc(Frequency)) %>%
+  mutate(
+    FrequencyRank = row_number(),
+    PercentageOfTotal = (Frequency / sum(Frequency)) * 100
+  )
 
 head(baseform_freq, 20)
 ```
 
-Arguably, some of those are interjections. I do not remove them here, but any future research needs to possibly select those words that are useful to them.
+Arguably, some of those are possibly not ideophones. I do not remove them here, but any future research needs to possibly select those words that are useful to them.
 
 Let us plot top 30 base form ideophones.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
-top_ideophones <- baseform_freq %>% head(30)
+top_ideophones <- 
+  baseform_freq %>%
+  top_n(30, Frequency)
 
 ggplot(top_ideophones, aes(x = reorder(BaseForm, Frequency), y = Frequency)) +
   geom_bar(stat = "identity", fill = colorBlindBlack8[4]) +
@@ -205,6 +214,208 @@ ggsave(plot = last_plot(), filename = paste0(plots, "top30MostFrequent.jpg"),
        width = 6, height = 6);
 ggsave(plot = last_plot(), filename = paste0(plots, "top30MostFrequent.tif"), 
        width = 6, height = 6, compression="lzw", dpi=600);
+```
+
+Now as percentage instead of raw numbers.
+
+```{r}
+ggplot(top_ideophones, aes(x = reorder(BaseForm, Frequency), y = PercentageOfTotal)) +
+  geom_bar(stat = "identity", fill = colorBlindBlack8[4]) +
+  coord_flip() +
+  labs(title = "Top 30 most frequent base forms", 
+       x = "Base form", 
+       y = "Percentage of total") +
+  theme_minimal()
+
+# Save the plot
+ggsave(plot = last_plot(), filename = paste0(plots, "top30MostFrequent_percentage.pdf"), 
+       width = 6, height = 6)
+ggsave(plot = last_plot(), filename = paste0(plots, "top30MostFrequent_percentage.jpg"), 
+       width = 6, height = 6)
+ggsave(plot = last_plot(), filename = paste0(plots, "top30MostFrequent_percentage.tif"), 
+       width = 6, height = 6, compression = "lzw", dpi = 600)
+```
+
+How many occur only once (*hapax legomena*) and how many more than once?
+
+```{r}
+baseform_freq %>%
+  summarise(
+    once_count = sum(Frequency == 1),
+    more_than_once_count = sum(Frequency > 1),
+    total_count = n()
+  ) %>%
+  pivot_longer(cols = c(once_count, more_than_once_count), 
+               names_to = "Occurrence", 
+               values_to = "Number") %>%
+  mutate(
+    Percentage = (Number / total_count) * 100
+  ) %>%
+  select(Occurrence, Number, Percentage)
+```
+
+Extract ten most and ten least frequent base forms.
+
+```{r}
+set.seed(123)
+
+top_flop_10 <- baseform_freq %>%
+  slice_max(Frequency, n = 10) %>%
+  bind_rows(
+    baseform_freq %>%
+      filter(Frequency == 1) %>%
+      slice_sample(n = 10)
+  ) %>%
+  mutate(
+    PercentageOfTotal = sprintf("%.2f%%", (Frequency / sum(baseform_freq$Frequency)) * 100)
+  ) %>%
+  select(FrequencyRank, BaseForm, Frequency, PercentageOfTotal) %>% 
+  arrange(FrequencyRank)
+
+knitr::kable(
+  top_flop_10,
+  col.names = c("Rank", "Base form", "Frequency", "% of total"),
+  format = "pipe"
+)
+```
+
+### Zipf's law
+
+Let us join the frequency rank back to the original data frame.
+
+```{r}
+df <- df %>%
+  left_join(baseform_freq %>% select(BaseForm, FrequencyRank), by = "BaseForm")
+```
+
+And check if the data distribution follows the Zipfian distribution.
+
+```{r}
+# Fit the Zipfian distribution (log-log scale)
+zipf_fit <- lm(log(Frequency) ~ log(FrequencyRank), data = baseform_freq)
+alpha <- -coef(zipf_fit)[2] # Extract the slope, Zipf's alpha
+
+# Generate the theoretical Zipfian distribution based on the fitted alpha
+zipf_line <- data.frame(
+  FrequencyRank = baseform_freq$FrequencyRank,
+  PredictedFrequency = baseform_freq$Frequency[1] * (1 / baseform_freq$FrequencyRank)^alpha
+)
+
+# Create the plot
+ggplot(baseform_freq, aes(x = FrequencyRank, y = Frequency)) +
+  geom_point(color = colorBlindBlack8[2]) + # Data distribution 
+  geom_line(data = zipf_line, aes(x = FrequencyRank, y = PredictedFrequency), 
+            color = colorBlindBlack8[4],
+            linewidth = 1.5) + # Zipfian distribution
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(#title = "Rank vs frequency (Log-Log scale)",
+       x = "Base form rank (log scale)",
+       y = "Base form frequency (log scale)") +
+  theme_minimal()
+
+# Save the plot
+ggsave(plot = last_plot(), filename = paste0(plots, "zipfsLaw.pdf"), 
+       width = 6, height = 4)
+ggsave(plot = last_plot(), filename = paste0(plots, "zipfsLaw.jpg"), 
+       width = 6, height = 4)
+ggsave(plot = last_plot(), filename = paste0(plots, "zipfsLaw.tif"), 
+       width = 6, height = 4, compression = "lzw", dpi = 600)
+```
+
+The plot does not follow entirely the Zipfian distribution.
+
+Let us fit a simple Bayesian model to check whether the Zipfian distribution holds for the data.
+
+```{r}
+# Prepare the data
+baseform_freq <- baseform_freq %>%
+  mutate(logRank = log(FrequencyRank), logFreq = log(Frequency))
+
+# Fit a Zipf's law model
+zipf_model <- brm(
+  logFreq ~ logRank, 
+  data = baseform_freq, 
+  family = gaussian(),
+  prior = c(
+    prior(normal(0, 10), class = "Intercept"),
+    prior(normal(-1, 1), class = "b") # Prior for the slope (Zipf's alpha)
+  ),
+  iter = 2000, chains = 4, cores = 4,
+  seed = 998,
+  file = paste0(models, "zipf_model.rds")
+)
+zipf_model
+
+# Fit a null model (no rank effect)
+zipf_null_model <- brm(
+  logFreq ~ 1, 
+  data = baseform_freq, 
+  family = gaussian(),
+  prior = prior(normal(0, 10), class = "Intercept"),
+  iter = 2000, chains = 4, cores = 4,
+  seed = 998,
+  file = paste0(models, "zipf_null_model.rds")
+)
+zipf_null_model
+
+# Compare the models with Bayes Factors
+bayes_factor(zipf_model, zipf_null_model)
+```
+
+The analysis explored whether the data follows a Zipfian distribution, where the frequency of an item is inversely proportional to its rank. The Bayesian model (`zipf_model`) demonstrated a strong relationship between log-transformed rank and log-transformed frequency, with a slope of -1.07 (95% CI: -1.09 to -1.05). This slope aligns closely with the expected value of -1 under Zipf’s law, providing strong evidence that the data exhibits a Zipfian-like behavior. The small estimated residual standard deviation ($\sigma=0.24$) indicates that the model explains most of the variability in the data.
+
+A comparison with the null model (`zipf_null_model`), which assumes no effect of rank, resulted in an overwhelming Bayes Factor in favor of the Zipfian model ($BF=\infty$). This result underscores that the rank-frequency relationship is far stronger than would be expected under the null hypothesis.
+
+The data points plotted above somewhat align with the Zipfian distribution line but do not perfectly follow it. This imperfection reflects the inherent variability and noise in real-world linguistic data, which rarely adheres perfectly to theoretical distributions. The small residual standard deviation supports that deviations from the Zipfian model are minor and primarily due to random noise or unmodeled factors. Such imperfections are common in natural datasets and do not undermine the overall finding that the data strongly supports a Zipfian distribution.
+
+### Pareto principle
+
+The Pareto Principle (also known as the 80/20 rule) suggests that roughly 80% of effects come from 20% of causes. For your data, this would mean checking if approximately 80% of the total frequency is contributed by 20% of the BaseForms.
+
+```{r}
+# Step 1: Calculate cumulative frequencies and percentages
+pareto_data <- baseform_freq %>%
+  arrange(desc(Frequency)) %>%
+  mutate(
+    CumulativeFrequency = cumsum(Frequency),
+    CumulativePercentage = CumulativeFrequency / sum(Frequency) * 100,
+    CumulativeBaseForms = row_number() / n() * 100
+  )
+
+# Step 2: Identify the percentage of BaseForms contributing to 80% of the total frequency
+pareto_cutoff <- pareto_data %>%
+  filter(CumulativePercentage >= 80) %>%
+  slice(1)
+
+percentage_of_baseforms <- pareto_cutoff$CumulativeBaseForms
+
+# Print result
+cat(sprintf("Approximately %.2f%% of the BaseForms contribute to 80%% of the total frequency.\n",
+            percentage_of_baseforms))
+```
+
+Let us visualize the Lorenz curve: the cumulative percentage of frequency against the cumulative percentage of BaseForms.
+
+```{r}
+ggplot(pareto_data, aes(x = CumulativeBaseForms, y = CumulativePercentage)) +
+  geom_line(color = colorBlindBlack8[4], size = 2) +
+  geom_vline(xintercept = percentage_of_baseforms, linetype = "dashed", color = colorBlindBlack8[2], linewidth = 1) +
+  geom_hline(yintercept = 80, linetype = "dashed", color = colorBlindBlack8[2], linewidth = 1) +
+  labs(
+    #title = "Pareto Principle in Base Forms",
+    x = "Cumulative percentage of base forms",
+    y = "Cumulative percentage of frequency"
+  ) +
+  theme_minimal()
+
+# Save the plot
+ggsave(plot = last_plot(), filename = paste0(plots, "paretoPrinciple.pdf"), 
+       width = 6, height = 4)
+ggsave(plot = last_plot(), filename = paste0(plots, "paretoPrinciple.jpg"), 
+       width = 6, height = 4)
+ggsave(plot = last_plot(), filename = paste0(plots, "paretoPrinciple.tif"), 
+       width = 6, height = 4, compression = "lzw", dpi = 600)
 ```
 
 ## Original language
@@ -248,7 +459,8 @@ Let us plot it.
 ggplot(language_baseform, aes(x = reorder(OriginalLanguage, BaseFormsPerBook), y = BaseFormsPerBook)) +
   geom_bar(stat = "identity", fill = colorBlindBlack8[4]) +
   coord_flip() +
-  labs(title = "Base forms per book per language", x = "Original language", y = "Base forms per book") +
+  labs(#title = "Base forms per book per language", 
+       x = "Original language", y = "Base forms per book") +
   scale_y_continuous(breaks = seq(0, max(language_baseform$BaseFormsPerBook), by = 1)) + # Adjust breaks
   theme_minimal()
 
@@ -266,14 +478,26 @@ How many words in a book are ideophones?
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ideophone_count_per_book <- df %>%
-  group_by(BookTitle, AgeGroup) %>% 
+  group_by(BookTitle, AgeGroup, Source) %>% 
   summarise(
-    TotalWords = sum(WordCount, na.rm = TRUE),
-    Ideophones = n(),
+    WordsOnPage = first(WordCount), # Avoid double-counting words for each Source
+    Ideophones = n(), # Count ideophones for each Source
     .groups = "drop"
   ) %>%
-  mutate(IdeophonePercentage = (Ideophones / TotalWords) * 100) %>%
+  group_by(BookTitle, AgeGroup) %>%
+  summarise(
+    TotalWords = sum(WordsOnPage, na.rm = TRUE), # Sum unique word counts per book
+    Ideophones = sum(Ideophones), # Sum ideophones for the book
+    .groups = "drop"
+  ) %>%
+  mutate(
+    IdeophonePercentage = (Ideophones / TotalWords) * 100 # Calculate percentage
+  ) %>%
   arrange(desc(IdeophonePercentage))
+
+# View the resulting data frame
+head(ideophone_count_per_book)
+
 
 # Show the first 20
 head(ideophone_count_per_book, 20)
@@ -289,7 +513,7 @@ correlationBF(
 )
 ```
 
-With $BF_{10}=9.321855×10^{103}$ there is very strong evidence for a correlation between a total word count and the number of ideophones.
+With $BF_{10}=6.370117×10^{40}$ there is very strong evidence for a correlation between a total word count and the number of ideophones.
 
 Let us visualize the correlation.
 
@@ -297,7 +521,7 @@ Let us visualize the correlation.
 ggplot(ideophone_count_per_book, aes(x = TotalWords, y = Ideophones)) +
   geom_point(alpha = 0.7, color = colorBlindBlack8[2]) +
   geom_smooth(method = "lm", color = colorBlindBlack8[4], se = FALSE) +
-  labs(title = "Correlation between total word count and number of ideophones",
+  labs(#title = "Correlation between total word count and number of ideophones",
        x = "Total words",
        y = "Ideophones") +
   theme_classic()
@@ -338,7 +562,8 @@ ggplot(ideophone_count_per_book, aes(x = factor(AgeGroup), y = TotalWords)) +
   theme_classic() +
   guides(fill = "none") +
   ylim(c(0, 2000)) +
-  labs(title = "Total words per book by age group", x = "Age group", y = "Total words")
+  labs(#title = "Total words per book by age group", 
+       x = "Age group", y = "Total words")
 
 ggsave(plot = last_plot(), filename = paste0(plots, "totalWords_ageGroup.pdf"), 
        width = 6, height = 4);
@@ -359,9 +584,9 @@ ggplot(ideophone_count_per_book, aes(x = factor(AgeGroup), y = Ideophones)) +
   theme_classic() +
   guides(fill = "none") +
   labs(
-    title = "Number of ideophones per book by age group",
+    #title = "Number of ideophones per book by age group",
     x = "Age group",
-    y = "Number of ideophones per book"
+    y = "Number of ideophone-like word forms per book"
   ) +
   ylim(c(0, 50))
 
@@ -384,9 +609,9 @@ ggplot(ideophone_count_per_book, aes(x = factor(AgeGroup), y = IdeophonePercenta
   theme_classic() +
   guides(fill = "none") +
   labs(
-    title = "Ideophone percentage by age group",
+    #title = "Ideophone percentage by age group",
     x = "Age group",
-    y = "Percentage of ideophones"
+    y = "Percentage of ideophone-like word forms"
   ) +
   ylim(c(0,10))
 
@@ -491,7 +716,7 @@ ggplot(per_book_counts, aes(x = factor(AgeGroup), y = UniqueIdeophones, fill = f
   geom_boxplot(width = 0.1, outlier.shape = NA, notch = TRUE) +
   scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
   labs(
-    title = "Unique ideophones per book by age group",
+    #title = "Unique ideophones per book by age group",
     x = "Age group",
     y = "Number of unique ideophones"
   ) +
@@ -511,7 +736,7 @@ ggplot(per_book_counts, aes(x = UniqueIdeophones, fill = factor(AgeGroup))) +
   geom_density(alpha = 0.6) +
   scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
   labs(
-    title = "Density of unique ideophones per book by age group",
+    #title = "Density of unique ideophones per book by age group",
     x = "Number of unique ideophones",
     y = "Density",
     fill = "Age group"
@@ -535,7 +760,7 @@ ggplot(per_book_counts, aes(x = factor(AgeGroup), y = UniqueBaseForms, fill = fa
   geom_boxplot(width = 0.1, outlier.shape = NA, notch = TRUE) +
   scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
   labs(
-    title = "Base forms per book by age group",
+    #title = "Base forms per book by age group",
     x = "Age group",
     y = "Number of base forms"
   ) +
@@ -544,7 +769,7 @@ ggplot(per_book_counts, aes(x = factor(AgeGroup), y = UniqueBaseForms, fill = fa
 
 ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_violinBox.pdf"), 
        width = 6, height = 4);
-ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGrou_violinBoxp.jpg"), 
+ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_violinBox.jpg"), 
        width = 6, height = 4);
 ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_violinBox.tif"), 
        width = 6, height = 4, compression = "lzw", dpi = 600)
@@ -556,7 +781,7 @@ ggplot(per_book_counts, aes(x = UniqueBaseForms, fill = factor(AgeGroup))) +
   geom_density(alpha = 0.6) +
   scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
   labs(
-    title = "Density of base forms per book by age group",
+    #title = "Density of base forms per book by age group",
     x = "Number of base forms",
     y = "Density",
     fill = "Age group"
@@ -606,7 +831,7 @@ ggplot(ideophones_per_book, aes(x = factor(AgeGroup), y = IdeophonesPerPage, fil
   geom_boxplot(width = 0.1, outlier.shape = NA, notch = TRUE) +
   scale_fill_manual(values = colorBlindBlack8[c(2, 4)]) +
   labs(
-    title = "Ideophones per page by age group",
+    #title = "Ideophones per page by age group",
     x = "Age group",
     y = "Ideophones per page"
   ) +
@@ -629,7 +854,7 @@ ideophones_per_book <- ideophones_per_book %>%
   filter(!is.na(IdeophonesPerPage) & !is.infinite(IdeophonesPerPage))
 ```
 
-Perform a Bayesian t-test to see if the difference between age groups is statistically significant.
+Perform a Bayesian t-test to see if the difference between age groups is statistically meaningful.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 ttestBF(
@@ -646,7 +871,7 @@ Analyze the relationship between page count and ideophones per page. Let's visua
 ggplot(ideophones_per_book, aes(x = PageCount, y = IdeophonesPerPage)) +
   geom_point(alpha = 0.7, color = colorBlindBlack8[2]) +
   geom_smooth(method = "lm", color = colorBlindBlack8[4], se = FALSE) +
-  labs(title = "Correlation between number of pages and ideophones per page",
+  labs(#title = "Correlation between number of pages and ideophones per page",
        x = "Number of pages",
        y = "Ideophones per page") +
   theme_classic()
@@ -679,10 +904,10 @@ ggplot(ideophones_per_book, aes(x = PageCount, y = IdeophonesPerPage, color = fa
   geom_smooth(method = "lm", se = FALSE) +
   scale_color_manual(values = colorBlindBlack8[c(2, 4)]) +
   labs(
-    title = "Correlation between number of pages and ideophones per page",
+    #title = "Correlation between number of pages and ideophones per page",
     x = "Number of pages",
-       y = "Ideophones per page",
-    color = "Age Group"
+       y = "Ideophone-like words per page",
+    color = "Age group"
   ) +
   theme_minimal()
 
