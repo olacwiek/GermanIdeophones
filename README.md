@@ -8,6 +8,7 @@ This work was published as a dataset in
 Ćwiek, Aleksandra (2025). A dataset of German ideophones from children's books. *Linguistische Berichte*.
 
 Please use the appropriate citation form when using this dataset.
+Ćwiek, A. (2024, December 11). *A dataset of ideophone-like marked words from German children’s books*. https://doi.org/10.17605/OSF.IO/6UDXZ
 
 ---
 
