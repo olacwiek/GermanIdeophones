@@ -8,9 +8,10 @@ This work will appear as an article attached to the dataset as
 
 Ćwiek, Aleksandra (submitted). A dataset of German ideophones from children's books. *Linguistische Berichte*.
 
-Please use the appropriate citation form when using this dataset.
-
+To cite the dataset directly, please cite:
 Ćwiek, A. (2024, December 11). *A dataset of ideophone-like marked words from German children’s books*. https://doi.org/10.17605/OSF.IO/6UDXZ
+
+Please use the appropriate citation form when using this dataset.
 
 ---
 
