@@ -15,9 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 
 # Introduction
 
-This is the updated and functional version of the German ideophone dataset, originally collected from February to August 2018 in the Helene-Nathan- Bibliothek in Berlin. The database was collected by Aleksandra Ćwiek and Luisa Cimander (during her internship at ZAS). A more detailed description is provided in [@cwiek2022], Chapter 4.2. Below, I will give excerpts of this work.
+This is the updated and functional version of the German ideophone dataset, originally collected from February to August 2018 in the Helene-Nathan library in Berlin. The database was collected by Aleksandra Ćwiek and Luisa Cimander (during her internship at ZAS). A more detailed description is provided in [@cwiek2022], Chapter 4.2. Below, I will give excerpts of this work.
 
-This work was published as a dataset in Ćwiek, Aleksandra (2025). A dataset of German ideophones from children's books. *Linguistische Berichte*.
+This work was published as a dataset in Ćwiek, Aleksandra (2025). A dataset of German ideophones from children's books. *Linguistische Berichte*. [DOI](https://doi.org/10.46771/9783967699470_3)
 
 Please use the appropriate citation form when using this dataset.
 
@@ -95,6 +95,7 @@ library(readr)    # data wrangling
 library(tidyr)
 library(dplyr)
 library(ggplot2) # plotting
+library(ggpattern) # remotes::install_github("coolbutuseless/ggpattern")
 library(tidyverse)
 library(ggpubr)
 library(gridExtra)
@@ -323,6 +324,28 @@ ggsave(plot = last_plot(), filename = paste0(plots, "zipfsLaw.tif"),
        width = 6, height = 4, compression = "lzw", dpi = 600)
 ```
 
+```{r bw for LB fig1, eval=FALSE, include=FALSE}
+# Create the plot
+ggplot(baseform_freq, aes(x = FrequencyRank, y = Frequency)) +
+  geom_line(data = zipf_line, aes(x = FrequencyRank, y = PredictedFrequency), 
+            color = "grey", linewidth = 1.5) +  # Zipfian distribution as black line
+  geom_point(shape = 1, color = "black") +  # Data distribution as empty dots
+  scale_x_log10() +
+  scale_y_log10() +
+  labs(
+       x = "Base form rank (log scale)",
+       y = "Base form frequency (log scale)") +
+  theme_minimal()
+
+# Save the plot
+ggsave(plot = last_plot(), filename = paste0(plots, "zipfsLaw_bw.pdf"), 
+       width = 6, height = 4)
+ggsave(plot = last_plot(), filename = paste0(plots, "zipfsLaw_bw.jpg"), 
+       width = 6, height = 4)
+ggsave(plot = last_plot(), filename = paste0(plots, "zipfsLaw_bw.tif"), 
+       width = 6, height = 4, compression = "lzw", dpi = 600)
+```
+
 The plot does not follow entirely the Zipfian distribution.
 
 Let us fit a simple Bayesian model to check whether the Zipfian distribution holds for the data.
@@ -417,6 +440,28 @@ ggsave(plot = last_plot(), filename = paste0(plots, "paretoPrinciple.jpg"),
 ggsave(plot = last_plot(), filename = paste0(plots, "paretoPrinciple.tif"), 
        width = 6, height = 4, compression = "lzw", dpi = 600)
 ```
+
+```{r bw for LB fig2, eval=FALSE, include=FALSE}
+ggplot(pareto_data, aes(x = CumulativeBaseForms, y = CumulativePercentage)) +
+  geom_line(color = "black", size = 2) +
+  geom_vline(xintercept = percentage_of_baseforms, linetype = "dashed", color = "darkgrey", linewidth = 1) +
+  geom_hline(yintercept = 80, linetype = "dashed", color = "darkgrey", linewidth = 1) +
+  labs(
+    #title = "Pareto Principle in Base Forms",
+    x = "Cumulative percentage of base forms",
+    y = "Cumulative percentage of frequency"
+  ) +
+  theme_minimal()
+
+# Save the plot
+ggsave(plot = last_plot(), filename = paste0(plots, "paretoPrinciple_bw.pdf"), 
+       width = 6, height = 4)
+ggsave(plot = last_plot(), filename = paste0(plots, "paretoPrinciple_bw.jpg"), 
+       width = 6, height = 4)
+ggsave(plot = last_plot(), filename = paste0(plots, "paretoPrinciple_bw.tif"), 
+       width = 6, height = 4, compression = "lzw", dpi = 600)
+```
+
 
 ## Original language
 
@@ -570,6 +615,26 @@ ggsave(plot = last_plot(), filename = paste0(plots, "totalWords_ageGroup.pdf"),
 ggsave(plot = last_plot(), filename = paste0(plots, "totalWords_ageGroup.jpg"), 
        width = 6, height = 4);
 ggsave(plot = last_plot(), filename = paste0(plots, "totalWords_ageGroup.tif"), 
+       width = 6, height = 4, compression="lzw", dpi=600);
+```
+
+```{r bw for LB fig3, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+ggplot(ideophone_count_per_book, aes(x = factor(AgeGroup), y = TotalWords)) +
+  geom_violin(aes(fill = factor(AgeGroup)), alpha = 0.6) + 
+  geom_boxplot(aes(fill = factor(AgeGroup)), width = 0.05, outlier.shape = NA, notch = TRUE) + 
+  #geom_jitter(color = "grey", alpha = 0.5, width = 0.2) + 
+  scale_fill_manual(values = c("grey20", "grey60")) +
+  theme_classic() +
+  guides(fill = "none") +
+  ylim(c(0, 2000)) +
+  labs(
+       x = "Age group", y = "Total words")
+
+ggsave(plot = last_plot(), filename = paste0(plots, "totalWords_ageGroup_bw.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "totalWords_ageGroup_bw.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "totalWords_ageGroup_bw.tif"), 
        width = 6, height = 4, compression="lzw", dpi=600);
 ```
 
@@ -797,6 +862,34 @@ ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_density.
 
 ```
 
+```{r bw for LB fig4, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+ggplot(per_book_counts, aes(x = UniqueBaseForms, fill = factor(AgeGroup))) +
+  geom_density_pattern(
+    aes(pattern = factor(AgeGroup)),
+    alpha = 0.6,
+    pattern_density = 0.3,
+    pattern_fill = "black",
+    pattern_colour = "black"
+  ) +
+  scale_fill_manual(values = c("white", "white"), guide = "none") +  # disable fill legend
+  labs(
+    x = "Number of base forms",
+    y = "Density",
+    pattern = "Age group"    # legend now comes from pattern
+  ) +
+  theme_classic()
+
+
+ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_density_bw.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_density_bw.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "baseForms_ageGroup_density_bw.tif"), 
+       width = 6, height = 4, compression = "lzw", dpi = 600)
+
+```
+
+
 ### Per page normalization
 
 We will also look at the number of pages.
@@ -918,6 +1011,35 @@ ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPer
 ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPerPage_AgeGroup.tif"), 
        width = 6, height = 4, compression="lzw", dpi=600);
 ```
+
+
+```{r bw for LB fig5, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+ggplot(ideophones_per_book, aes(x = PageCount, y = IdeophonesPerPage, shape = factor(AgeGroup), fill = factor(AgeGroup), color = factor(AgeGroup))) +
+  geom_point(size = 3, alpha = 0.6) +  # Plot points with desired styling
+  geom_smooth(method = "lm", se = FALSE, aes(linetype = factor(AgeGroup)), linewidth = 1) +  # Regression lines
+  scale_shape_manual(values = c(21, 21)) +  # Both groups use shape 21 (filled dots with outline)
+  scale_fill_manual(values = c("white", "grey50")) +  # White and grey fills
+  scale_color_manual(values = c("black", "grey50")) +  # Black and grey outlines
+  scale_linetype_manual(values = c("solid", "solid")) +  # Keep regression lines solid
+  labs(
+    x = "Number of pages",
+    y = "Ideophone-like words per page",
+    shape = "Age group",
+    fill = "Age group",
+    color = "Age group"
+  ) +
+  theme_minimal() +
+  guides(shape = "none", fill = "none", linetype = "none")  # Remove all legends related to AgeGroup
+
+
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPerPage_AgeGroup_bw.pdf"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPerPage_AgeGroup_bw.jpg"), 
+       width = 6, height = 4);
+ggsave(plot = last_plot(), filename = paste0(plots, "cor_PageCount_IdeophonesPerPage_AgeGroup_bw.tif"), 
+       width = 6, height = 4, compression="lzw", dpi=600);
+```
+
 
 It is clearly visible that age group 1 has an extremely steep correlation, while age group 2 a rather flat one. Let us examine this statistically.
 
