@@ -1,11 +1,15 @@
 #  A dataset of ideophone-like marked words from German children’s books
 
-This repository contains a dataset of the German ideophone dataset collected in German children's books between February and August 2018 at the Helene-Nathan-Bibliothek in Berlin. Included are some basic mostly descriptive analyses. Below, you will find a description of the project, the dataset, and how to use the resources in this repository.
+This repository contains a dataset of the German ideophone-like marked words dataset collected in German children's books between February and August 2018 at the Helene-Nathan-Bibliothek in Berlin. Included are some basic mostly descriptive analyses. Below, you will find a description of the project, the dataset, and how to use the resources in this repository.
 
-**It is worth noting that no post-selection has been undertaken. Any users who use the dataset in the future are advised caution in the choice of items from the dataset for their specific analysis.**
+**It is crucial to note that no post-selection has been undertaken. Any users who use the dataset in the future are advised caution in the choice of items from the dataset for their specific analysis.**
 
-This work was published as a dataset in
-Ćwiek, Aleksandra (2025). A dataset of German ideophones from children's books. *Linguistische Berichte*.
+This work will appear as an article attached to the dataset as
+
+Ćwiek, Aleksandra (submitted). A dataset of German ideophones from children's books. *Linguistische Berichte*.
+
+To cite the dataset directly, please cite:
+Ćwiek, A. (2024, December 11). *A dataset of ideophone-like marked words from German children’s books*. https://doi.org/10.17605/OSF.IO/6UDXZ
 
 Please use the appropriate citation form when using this dataset.
 
@@ -55,6 +59,7 @@ The dataset comprises detailed metadata and linguistic information for ideophone
 - **WordType**: The grammatical category of the ideophone (if determined).
 - **WordCount**: The number of words on the page where the ideophone appears.
 - **PageCount**: The total number of pages in the book.
+- **FrequencyRank**: The rank of the base form according to the frequency of occurrence across the dataset.
 
 ---
 
@@ -88,6 +93,7 @@ Key basic analyses include:
   - `ggplot2`
   - `BayesFactor`
   - `here`
+  - `brms`
 
 ### Getting Started
 
